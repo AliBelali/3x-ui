@@ -2,7 +2,7 @@
   "remarks": "",
   "dns": {
     "tag": "dns_out",
-    "queryStrategy": "UseIP",
+    "queryStrategy": "UseIPv4",
     "servers": [
       {
         "address": "8.8.8.8",
@@ -25,7 +25,7 @@
           "tls",
           "fakedns"
         ],
-        "enabled": true
+        "enabled": false
       },
       "tag": "socks"
     },
@@ -74,7 +74,7 @@
     }
   },
   "routing": {
-    "domainStrategy": "AsIs",
+    "domainStrategy": "IPIfNonMatch",
     "rules": [
       {
         "type": "field",
