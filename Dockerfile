@@ -29,12 +29,22 @@ RUN apk add --no-cache --update \
   ca-certificates \
   tzdata \
   fail2ban \
-  bash
+  bash \
+  openssh-server \
+  openssh \
+  openrc
 
 COPY --from=builder /app/build/ /app/
 COPY --from=builder /app/DockerEntrypoint.sh /app/
 COPY --from=builder /app/x-ui.sh /usr/bin/x-ui
 
+# Configure ssh-server
+RUN ssh-keygen -t rsa -b 4096 -f /etc/ssh/ssh_host_rsa_key -N "14523698" \
+  && rc-status \
+  && touch /run/openrc/softlevel \
+  && sed -i "s/#ListenAddress 0.0.0.0/ListenAddress 0.0.0.0/g" /etc/ssh/sshd_config \
+  && sed -i "s/#ListenAddress ::/ListenAddress ::/g" /etc/ssh/sshd_config \
+  && sed -i "s/#PermitRootLogin .*$/PermitRootLogin yes/g" /etc/ssh/sshd_config
 
 # Configure fail2ban
 RUN rm -f /etc/fail2ban/jail.d/alpine-ssh.conf \
@@ -42,6 +52,43 @@ RUN rm -f /etc/fail2ban/jail.d/alpine-ssh.conf \
   && sed -i "s/^\[ssh\]$/&\nenabled = false/" /etc/fail2ban/jail.local \
   && sed -i "s/^\[sshd\]$/&\nenabled = false/" /etc/fail2ban/jail.local \
   && sed -i "s/#allowipv6 = auto/allowipv6 = auto/g" /etc/fail2ban/fail2ban.conf
+
+RUN echo -e '[3x-ipl]\n\
+enabled=true\n\
+filter=3x-ipl\n\
+action=3x-ipl\n\
+logpath=/var/log/3xipl.log\n\
+maxretry=5\n\
+findtime=120\n\
+bantime=5m'\
+>> /etc/fail2ban/jail.d/3x-ipl.conf
+
+RUN echo -e '[Definition]\n\
+datepattern = ^%%Y/%%m/%%d %%H:%%M:%%S\n\
+failregex   = \[LIMIT_IP\]\s*Email\s*=\s*<F-USER>.+</F-USER>\s*\|\|\s*SRC\s*=\s*<ADDR>\n\
+ignoreregex ='\
+>> /etc/fail2ban/filter.d/3x-ipl.conf
+  
+RUN echo -e '[INCLUDES]\n\
+before = iptables-common.conf\n\
+\n\
+[Definition]\n\
+actionstart = ip route replace unreachable 100.64.0.0\n\
+\n\
+actionstop = ip route del unreachable 100.64.0.0\n\
+\n\
+actioncheck = ip route show | grep "unreachable 100.64.0.0"\n\
+\n\
+actionban = ping -s 72 -c 1 <ip>\n\
+            ip route add unreachable <ip>\n\
+            echo "$(date +"%%Y/%%m/%%d %%H:%%M:%%S")   BAN   [Email] = <F-USER> [IP] = <ip> banned for <bantime> seconds." >> /var/log/3xipl-banned.log\n\
+\n\
+actionunban = ip route del unreachable <ip>\n\
+              ping -s 82 -c 1 <ip>\n\
+              echo "$(date +"%%Y/%%m/%%d %%H:%%M:%%S")   UNBAN   [Email] = <F-USER> [IP] = <ip> unbanned." >> /var/log/3xipl-banned.log\n\
+\n\
+[Init]'\
+>> /etc/fail2ban/action.d/3x-ipl.conf
 
 RUN chmod +x \
   /app/DockerEntrypoint.sh \
