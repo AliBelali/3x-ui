@@ -32,7 +32,8 @@ RUN apk add --no-cache --update \
   bash \
   openssh-server \
   openssh \
-  openrc
+  openrc \
+  certbot
 
 COPY --from=builder /app/build/ /app/
 COPY --from=builder /app/DockerEntrypoint.sh /app/
