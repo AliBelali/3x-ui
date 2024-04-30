@@ -92,6 +92,7 @@ actionunban = ip route del unreachable <ip>\n\
 >> /etc/fail2ban/action.d/3x-ipl.conf
 
 RUN touch /var/log/3xipl.log
+RUN touch /var/log/3xipl-banned.log
 
 RUN chmod +x \
   /app/DockerEntrypoint.sh \
