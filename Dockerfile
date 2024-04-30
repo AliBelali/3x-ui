@@ -1,12 +1,13 @@
 # ========================================================
 # Stage: Builder
 # ========================================================
-FROM golang:1.22-alpine AS builder
+FROM golang:1.22-bullseye AS builder
 WORKDIR /app
 ARG TARGETARCH
 
-RUN apk --no-cache --update add \
-  build-base \
+RUN apt-get update  \
+  && apt-get install \
+  build-essential \
   gcc \
   wget \
   unzip
@@ -21,29 +22,32 @@ RUN ./DockerInit.sh "$TARGETARCH"
 # ========================================================
 # Stage: Final Image of 3x-ui
 # ========================================================
-FROM alpine
+FROM debian
 ENV TZ=Asia/Tehran
-WORKDIR /app
+WORKDIR /usr/local/x-ui
 
-RUN apk add --no-cache --update \
+RUN apt-get update \
+  && apt-get install \
   ca-certificates \
   tzdata \
   fail2ban \
   bash \
   openssh-server \
-  openssh \
-  openrc \
+  procps \
+  systemctl \
+  socat \
+  tar \
+  wget \
   certbot
 
-COPY --from=builder /app/build/ /app/
-COPY --from=builder /app/DockerEntrypoint.sh /app/
+COPY --from=builder /app/build/ /usr/local/x-ui/
+COPY --from=builder /app/DockerEntrypoint.sh /usr/local/x-ui/
 COPY --from=builder /app/x-ui.sh /usr/bin/x-ui
+RUN systemctl daemon-reload \
+  && systemctl enable x-ui
 
 # Configure ssh-server
-RUN ssh-keygen -t rsa -b 4096 -f /etc/ssh/ssh_host_rsa_key -N "14523698" \
-  && rc-status \
-  && touch /run/openrc/softlevel \
-  && sed -i "s/#ListenAddress 0.0.0.0/ListenAddress 0.0.0.0/g" /etc/ssh/sshd_config \
+RUN sed -i "s/#ListenAddress 0.0.0.0/ListenAddress 0.0.0.0/g" /etc/ssh/sshd_config \
   && sed -i "s/#ListenAddress ::/ListenAddress ::/g" /etc/ssh/sshd_config \
   && sed -i "s/#PermitRootLogin .*$/PermitRootLogin yes/g" /etc/ssh/sshd_config
 
@@ -92,10 +96,10 @@ actionunban = ip route del unreachable <ip>\n\
 >> /etc/fail2ban/action.d/3x-ipl.conf
 
 RUN chmod +x \
-  /app/DockerEntrypoint.sh \
-  /app/x-ui \
+  /usr/local/x-ui/DockerEntrypoint.sh \
+  /usr/local/x-ui/x-ui \
   /usr/bin/x-ui
 
 VOLUME [ "/etc/x-ui" ]
 CMD [ "./x-ui" ]
-ENTRYPOINT [ "/app/DockerEntrypoint.sh" ]
+ENTRYPOINT [ "/usr/local/x-ui/DockerEntrypoint.sh" ]
