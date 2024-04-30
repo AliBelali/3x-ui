@@ -38,11 +38,13 @@ RUN apt-get update \
   socat \
   tar \
   wget \
+  sed \
   certbot
 
 COPY --from=builder /app/build/ /usr/local/x-ui/
 COPY --from=builder /app/DockerEntrypoint.sh /usr/local/x-ui/
 COPY --from=builder /app/x-ui.sh /usr/bin/x-ui
+COPY x-ui.service /etc/systemd/system/
 RUN systemctl daemon-reload \
   && systemctl enable x-ui
 
@@ -98,7 +100,8 @@ actionunban = ip route del unreachable <ip>\n\
 RUN chmod +x \
   /usr/local/x-ui/DockerEntrypoint.sh \
   /usr/local/x-ui/x-ui \
-  /usr/bin/x-ui
+  /usr/bin/x-ui \
+  /etc/systemd/system/x-ui.service
 
 VOLUME [ "/etc/x-ui" ]
 CMD [ "./x-ui" ]
