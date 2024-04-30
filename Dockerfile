@@ -5,8 +5,8 @@ FROM golang:1.22-bullseye AS builder
 WORKDIR /app
 ARG TARGETARCH
 
-RUN apt-get update  \
-  && apt-get install \
+RUN apt-get update -y \
+  && apt-get install -y \
   build-essential \
   gcc \
   wget \
@@ -26,8 +26,8 @@ FROM debian
 ENV TZ=Asia/Tehran
 WORKDIR /usr/local/x-ui
 
-RUN apt-get update \
-  && apt-get install \
+RUN apt-get update -y \
+  && apt-get install -y \
   ca-certificates \
   tzdata \
   fail2ban \
