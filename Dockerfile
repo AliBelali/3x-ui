@@ -60,7 +60,7 @@ RUN rm -f /etc/fail2ban/jail.d/alpine-ssh.conf \
   && sed -i "s/^\[sshd\]$/&\nenabled = false/" /etc/fail2ban/jail.local \
   && sed -i "s/#allowipv6 = auto/allowipv6 = auto/g" /etc/fail2ban/fail2ban.conf
 
-RUN echo -e '[3x-ipl]\n\
+RUN echo '[3x-ipl]\n\
 enabled=true\n\
 filter=3x-ipl\n\
 action=3x-ipl\n\
@@ -70,13 +70,13 @@ findtime=120\n\
 bantime=5m'\
 >> /etc/fail2ban/jail.d/3x-ipl.conf
 
-RUN echo -e '[Definition]\n\
+RUN echo '[Definition]\n\
 datepattern = ^%%Y/%%m/%%d %%H:%%M:%%S\n\
 failregex   = \[LIMIT_IP\]\s*Email\s*=\s*<F-USER>.+</F-USER>\s*\|\|\s*SRC\s*=\s*<ADDR>\n\
 ignoreregex ='\
 >> /etc/fail2ban/filter.d/3x-ipl.conf
   
-RUN echo -e '[INCLUDES]\n\
+RUN echo '[INCLUDES]\n\
 before = iptables-common.conf\n\
 \n\
 [Definition]\n\
