@@ -34,6 +34,7 @@ RUN apt-get update -y \
   bash \
   openssh-server \
   procps \
+  iproute2 \
   systemctl \
   socat \
   tar \
