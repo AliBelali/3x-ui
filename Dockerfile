@@ -40,6 +40,7 @@ RUN apt-get update -y \
   tar \
   wget \
   sed \
+  iputils-ping \
   certbot
 
 COPY --from=builder /app/build/ /usr/local/x-ui/
