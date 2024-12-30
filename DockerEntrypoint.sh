@@ -4,7 +4,7 @@
 /etc/init.d/ssh start
 
 # Start fail2ban
-systemctl start fail2ban
+fail2ban-client -x start
 
 # Run x-ui
 #systemctl start x-ui
