@@ -7,8 +7,8 @@
 fail2ban-client -x start
 
 # Run x-ui
-#systemctl start x-ui
-exec /usr/local/x-ui/x-ui
+systemctl start x-ui
+#exec /usr/local/x-ui/x-ui
 
 #Keep Container Running
-#tail -f /dev/null
+tail -f /dev/null
